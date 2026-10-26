@@ -1,0 +1,21 @@
+{
+  "title": "Thực tế thi công: Đừng để 3D đánh lừa bạn",
+  "voice": "giahuy",
+  "sources": {
+    "apartment": {"file": "apartment.mp4", "usable_seconds": 14.4},
+    "villa-survey": {"file": "villa-survey.mp4"},
+    "villa-work": {"file": "villa-work.mp4"},
+    "interior": {"file": "interior.mp4"},
+    "wall": {"file": "wall.mp4"},
+    "tv-design": {"file": "tv-design.mp4"}
+  },
+  "sections": [
+    {"title": "MỞ ĐẦU", "source": "apartment"},
+    {"title": "CỬA VÀ TỦ GIÀY", "source": "apartment"},
+    {"title": "KHU BẾP", "source": "villa-work"},
+    {"title": "TRẦN / VÁCH PHÒNG KHÁCH", "source": "wall"},
+    {"title": "PHÒNG NGỦ MASTER", "source": "interior"},
+    {"title": "KIỂM TRA CUỐI", "source": "villa-survey"},
+    {"title": "LỜI KẾT", "source": "apartment"}
+  ]
+}

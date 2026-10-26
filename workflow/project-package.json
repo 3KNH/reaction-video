@@ -1,0 +1,9 @@
+{
+  "name": "reaction-video-workflow",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "gsap": "3.15.0",
+    "hyperframes": "0.8.201"
+  }
+}
