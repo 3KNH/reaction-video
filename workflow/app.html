@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xưởng dựng video khảo sát</title>
+  <style>
+    :root{--paper:#f6f2ea;--card:#fffdfa;--ink:#232821;--muted:#637067;--line:#ddd8cd;--accent:#ae5535;--accent2:#e7d5c4;--good:#246149}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+    header{background:#253127;color:#fff;padding:34px max(24px,calc((100vw - 1180px)/2));border-bottom:6px solid var(--accent)}
+    header h1{font:700 clamp(29px,4vw,45px)/1.12 Georgia,serif;margin:0 0 9px}header p{margin:0;color:#d8e2d7;max-width:760px}
+    main{max-width:1180px;margin:auto;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:22px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 3px 16px #2d24130b}
+    h2{font:700 28px/1.15 Georgia,serif;margin:0 0 10px}h3{font-size:18px;margin:0 0 5px}p{margin:0 0 15px;color:var(--muted)}
+    .step{display:inline-block;background:var(--accent2);color:#703620;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:800;margin-bottom:12px}
+    label{font-weight:700;display:block;margin:13px 0 6px}input[type=text],select,textarea{width:100%;border:1px solid #c9c8be;background:#fff;border-radius:8px;padding:10px 12px;font:inherit;color:var(--ink)}
+    textarea{min-height:270px;resize:vertical}input[type=file]{width:100%;font:inherit;font-size:14px}
+    button,.download{appearance:none;border:0;background:var(--accent);color:#fff;border-radius:8px;padding:11px 17px;font:700 15px system-ui;cursor:pointer;text-decoration:none;display:inline-block}
+    button:hover,.download:hover{background:#8a3d26}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#2d4837}.secondary:hover{background:#213c2c}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.files{display:grid;gap:9px}.file{display:grid;grid-template-columns:1fr 1.5fr;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+    .file small{display:block;color:var(--muted);font-weight:400}.pill{display:inline-block;padding:2px 7px;border-radius:6px;background:#eee9df;font-size:12px;font-weight:700}.pill.ok{background:#dcebdd;color:var(--good)}
+    .scene{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+    .review-item{border-top:1px solid var(--line);padding:18px 0}.review-item:first-child{border:0}.frames{display:flex;gap:5px;overflow-x:auto;margin:8px 0 12px}.frames img{height:160px;border-radius:5px;background:#ddd}.transcript{font-size:13px;max-height:100px;overflow:auto;padding:10px;background:#f2efe8;border-radius:8px;color:#39463d}
+    .review-item textarea{min-height:70px}aside{position:sticky;top:20px;align-self:start}.status{font-weight:800;margin-bottom:8px}pre{white-space:pre-wrap;word-break:break-word;background:#1f2824;color:#d9f0d9;padding:12px;border-radius:8px;font-size:12px;max-height:300px;overflow:auto}
+    video{width:100%;max-width:320px;display:block;margin:8px 0 15px;background:#111;border-radius:9px}#notice{padding:10px 12px;border-radius:8px;margin:0 0 12px;display:none}#notice.show{display:block;background:#efe0d0;color:#58351e}
+    @media(max-width:880px){main{grid-template-columns:1fr}aside{position:static;grid-row:1}.row,.scene,.file{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header><h1>Xưởng dựng video khảo sát</h1><p>Từ clip thô và kịch bản đến video dọc có giọng nam Gia Huy, chữ theo lời đọc và file MP4 tải về máy.</p></header>
+  <main>
+    <div>
+      <section class="card">
+        <span class="step">BƯỚC 1</span><h2>Chuẩn bị video và lời bình</h2>
+        <p>Chọn sáu clip, sửa kịch bản và nguồn hình cho từng cảnh. Mỗi đoạn văn trong kịch bản ứng với một cảnh.</p>
+        <div id="notice"></div>
+        <label for="title">Tên video</label><input id="title" type="text" maxlength="160">
+        <div class="row"><div><label for="voice">Giọng nam</label><select id="voice"><option value="giahuy">Gia Huy — trầm ấm, kể chuyện</option><option value="huuduc">Hữu Đức — điềm đạm</option><option value="quangminh">Quang Minh — rõ ràng</option><option value="tiendat">Tiến Đạt — năng lượng</option></select></div><div><label>Khung xuất</label><input type="text" value="Dọc 9:16 · 720 × 1280" disabled></div></div>
+        <label>Video nguồn</label><div id="files" class="files"></div>
+        <label for="script">Kịch bản tiếng Việt</label><textarea id="script" spellcheck="true"></textarea>
+        <p>Kịch bản mẫu hơn 800 từ tạo video dài trên 3 phút. Rút ngắn trước khi tạo nếu nơi đăng có giới hạn thời lượng.</p>
+        <label>Thứ tự cảnh và clip minh họa</label><div id="scenes"></div>
+        <button id="save">Lưu đầu vào</button>
+      </section>
+      <section class="card">
+        <span class="step">BƯỚC 2</span><h2>Kiểm tra clip trước khi dựng</h2>
+        <p>Ứng dụng tạo ảnh mẫu và bóc băng âm thanh. Xem clip gốc, rồi nhập tóm tắt một câu cho mỗi clip; bản bóc băng có thể sai.</p>
+        <button class="secondary" id="analyze">Phân tích sáu clip</button>
+        <div id="reviews"></div><button id="save-review" style="display:none">Lưu tóm tắt đã duyệt</button>
+      </section>
+      <section class="card">
+        <span class="step">BƯỚC 3</span><h2>Tạo và tải video</h2>
+        <p>ZeroTTS tạo lời đọc tiếng Việt; HyperFrames căn chữ, dựng và kiểm tra bố cục. Bước này có thể mất vài phút.</p>
+        <button id="generate">Tạo video</button>
+        <div id="result" style="display:none"><h3 style="margin-top:20px">Bản dựng đã xong</h3><video id="player" controls preload="metadata" src="/video"></video><a class="download" href="/download">Tải video MP4</a> <a class="download secondary" href="/download-audio">Tải lời đọc MP3</a></div>
+      </section>
+    </div>
+    <aside class="card"><h2>Tiến độ</h2><div id="status" class="status">Đang tải…</div><p id="hint">Các bước chạy trên máy của bạn; file không tự đăng công khai.</p><pre id="log">Chưa có tác vụ.</pre></aside>
+  </main>
+  <script>
+    const $=id=>document.getElementById(id); let initialized=false,reviewSignature=''; let latest=null;
+    const labels={'apartment':'Căn hộ hiện trạng','villa-survey':'Khảo sát biệt thự','villa-work':'Thi công biệt thự','interior':'Không gian nội thất','wall':'Vách ốp giả đá','tv-design':'Mẫu kệ TV'};
+    function message(text){const el=$('notice');el.textContent=text;el.classList.add('show');window.scrollTo({top:0,behavior:'smooth'});}
+    async function api(url,options={}){const r=await fetch(url,options);const d=await r.json();if(!r.ok)throw Error(d.detail||'Không thực hiện được');return d;}
+    function make(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+    function initForm(data){const c=data.config;$('title').value=c.title;$('voice').value=c.voice;$('script').value=data.script;
+      const files=$('files');files.replaceChildren();Object.entries(c.sources).forEach(([alias,spec])=>{const row=make('div','file');const left=make('div');const strong=make('strong',null,labels[alias]||alias);const small=make('small',null,spec.file);left.append(strong,small);const right=make('div');const badge=make('span','pill'+(data.files[alias]?' ok':''),data.files[alias]?'Đã có clip':'Chưa có clip');const input=make('input');input.type='file';input.accept='video/*';input.id='file_'+alias;right.append(badge,input);row.append(left,right);files.append(row);});
+      const scenes=$('scenes');scenes.replaceChildren();c.sections.forEach((scene,i)=>{const row=make('div','scene');const name=make('input');name.type='text';name.value=scene.title;name.dataset.sceneTitle=i;const sel=make('select');sel.dataset.sceneSource=i;Object.keys(c.sources).forEach(alias=>{const op=make('option',null,labels[alias]||alias);op.value=alias;sel.append(op);});sel.value=scene.source;row.append(name,sel);scenes.append(row);});initialized=true;}
+    function renderReviews(data){const sig=JSON.stringify(data.transcripts.map(x=>[x.alias,x.duration]));if(sig===reviewSignature)return;reviewSignature=sig;const box=$('reviews');box.replaceChildren();if(!data.transcripts.length){$('save-review').style.display='none';return;}
+      data.transcripts.forEach(item=>{const card=make('div','review-item');card.append(make('h3',null,labels[item.alias]||item.alias));const player=make('video');player.controls=true;player.preload='metadata';player.src=`/source/${item.alias}`;card.append(player);const frames=make('div','frames');for(let i=0;i<6;i++){const img=make('img');img.src=`/frames/${item.alias}/${i}`;img.alt=`${item.alias} tại mốc ${i+1}`;frames.append(img);}card.append(frames);card.append(make('div','transcript',item.transcript||'Không phát hiện lời nói.'));
+        const lab=make('label',null,'Tóm tắt một câu sau khi xem clip');const input=make('textarea');input.dataset.summary=item.alias;input.value=data.review[item.alias]||'';input.placeholder='Clip này ghi lại…';card.append(lab,input);box.append(card);});$('save-review').style.display='inline-block';}
+    function update(data){latest=data;if(!initialized)initForm(data);renderReviews(data);const job=data.job;$('status').textContent=job.running?'Đang chạy: '+job.phase:job.phase==='failed'?'Lỗi: '+job.error:job.phase==='done'?'Hoàn tất':'Sẵn sàng';$('log').textContent=data.log||'Chưa có tác vụ.';$('result').style.display=data.result_ready?'block':'none';for(const id of ['save','analyze','save-review','generate'])$(id).disabled=job.running;
+      if(data.result_ready&&$('player').readyState===0)$('player').load();}
+    async function refresh(){try{update(await api('/api/status'));}catch(e){$('status').textContent=e.message;}}
+    $('save').onclick=async()=>{try{const c=structuredClone(latest.config);c.title=$('title').value.trim();c.voice=$('voice').value;c.sections.forEach((s,i)=>{s.title=document.querySelector(`[data-scene-title="${i}"]`).value.trim();s.source=document.querySelector(`[data-scene-source="${i}"]`).value;});const form=new FormData();form.append('config',JSON.stringify(c));form.append('script',$('script').value);Object.keys(c.sources).forEach(a=>{const f=$('file_'+a).files[0];if(f)form.append('file_'+a,f);});await api('/api/save',{method:'POST',body:form});initialized=false;reviewSignature='';message('Đã lưu đầu vào. Bấm “Phân tích sáu clip” để tiếp tục.');await refresh();}catch(e){message(e.message);}};
+    $('analyze').onclick=async()=>{try{await api('/api/analyze',{method:'POST'});message('Đang phân tích clip. Theo dõi tiến độ bên phải.');await refresh();}catch(e){message(e.message);}};
+    $('save-review').onclick=async()=>{try{const notes={};document.querySelectorAll('[data-summary]').forEach(el=>notes[el.dataset.summary]=el.value.trim());await api('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(notes)});message('Đã lưu tóm tắt sáu clip. Có thể tạo video.');}catch(e){message(e.message);}};
+    $('generate').onclick=async()=>{try{await api('/api/generate',{method:'POST'});message('Đang tạo lời đọc và dựng video.');await refresh();}catch(e){message(e.message);}};
+    refresh();setInterval(refresh,3000);
+  </script>
+</body>
+</html>

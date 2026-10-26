@@ -1,10 +1,36 @@
-# Quy trình dựng video khảo sát nội thất
+# Ứng dụng dựng video khảo sát nội thất
 
-Quy trình này dựng lại video dọc 9:16 từ sáu clip, kịch bản tiếng Việt, lời đọc **nam Gia Huy** của ZeroTTS và bố cục HyperFrames. File tải cuối là `workflow/work/final-download.mp4`. Mỗi lần chạy dùng clip trong checkout hiện có; không tạo thêm Git worktree.
+Ứng dụng web chạy trên máy của bạn để dựng video dọc 9:16 từ sáu clip, kịch bản tiếng Việt, lời đọc **nam Gia Huy** của ZeroTTS và bố cục HyperFrames. File tải cuối là `workflow/work/final-download.mp4`. Mỗi lần chạy dùng clip trong checkout hiện có; không tạo thêm Git worktree.
+
+## Mở giao diện
+
+Cần Python 3.10+, Node.js 22+, npm, FFmpeg/FFprobe và Chrome/Chromium. Sau khi cài các công cụ này, từ gốc repository chạy `bash workflow/start.sh` trên Linux/macOS hoặc `powershell -ExecutionPolicy Bypass -File workflow/start.ps1` trên Windows. Lệnh sẽ tạo môi trường Python, cài thư viện và khởi động ứng dụng.
+
+Nếu muốn thao tác thủ công, trên Linux/macOS:
+
+```bash
+python -m venv workflow/work/.venv
+workflow/work/.venv/bin/python -m pip install -r workflow/requirements.txt
+workflow/work/.venv/bin/python -m uvicorn app:app --app-dir workflow --host 127.0.0.1 --port 8765
+```
+
+Trên Windows PowerShell:
+
+```powershell
+py -m venv workflow\work\.venv
+.\workflow\work\.venv\Scripts\python.exe -m pip install -r workflow\requirements.txt
+.\workflow\work\.venv\Scripts\python.exe -m uvicorn app:app --app-dir workflow --host 127.0.0.1 --port 8765
+```
+
+Sau đó mở `http://127.0.0.1:8765` trên **cùng máy**. Ứng dụng chỉ lắng nghe localhost và không tự đăng clip lên mạng. Nếu dùng môi trường đám mây, trình duyệt trên máy cá nhân không truy cập được localhost của máy đám mây; hãy chạy ứng dụng trên máy của bạn hoặc dùng cơ chế chuyển tiếp cổng có xác thực của nền tảng.
+
+Trong giao diện: (1) chọn sáu clip, sửa kịch bản và nguồn hình của bảy cảnh, bấm **Lưu đầu vào**; (2) bấm **Phân tích sáu clip**, xem ảnh mẫu/bản bóc băng và ghi tóm tắt một câu cho từng clip, bấm **Lưu tóm tắt đã duyệt**; (3) bấm **Tạo video**, theo dõi tiến độ rồi xem/tải MP4 và MP3. Ứng dụng dùng lại lời đọc và mốc chữ nếu kịch bản cùng giọng đọc không đổi.
+
+Các bước xử lý cũng chạy được qua dòng lệnh bên dưới khi cần tự động hóa.
 
 ## Đầu vào
 
-Cần Python 3.10+, Node.js 22+, npm, FFmpeg/FFprobe và Chromium. Đặt video trong `workflow/input/` theo tên trong `config.json`:
+Đặt video trong `workflow/input/` theo tên trong `config.json` nếu dùng dòng lệnh; giao diện sẽ lưu file tải lên vào đây:
 
 | Tên file | Nội dung trong bộ tư liệu hiện tại |
 |---|---|

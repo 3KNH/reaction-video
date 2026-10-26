@@ -1,6 +1,7 @@
 """Rebuild the Vietnamese reaction video from reviewed footage and script."""
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -11,7 +12,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 WORK = HERE / "work"
 PROJECT = WORK / "project"
-CONFIG = json.loads((HERE / "config.json").read_text(encoding="utf-8"))
+CONFIG_PATH = WORK / "config.json" if (WORK / "config.json").exists() else HERE / "config.json"
+CONFIG = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
 VOICE = CONFIG.get("voice", "giahuy")
 os.environ.setdefault("HF_HOME", str(WORK / "hf-cache"))
 os.environ.setdefault("HF_XET_CACHE", str(WORK / "hf-cache" / "xet"))
@@ -38,8 +40,9 @@ def prepare():
     assets.mkdir(exist_ok=True)
     if not (PROJECT / "script.txt").exists():
         shutil.copy2(HERE / "example-script.txt", PROJECT / "script.txt")
-    for name in ("build.py", "config.json", "DESIGN.md"):
+    for name in ("build.py", "DESIGN.md"):
         shutil.copy2(HERE / name, PROJECT / name)
+    shutil.copy2(CONFIG_PATH, PROJECT / "config.json")
     shutil.copy2(HERE / "tts.py", WORK / "tts.py")
     shutil.copy2(HERE / "project-package.json", PROJECT / "package.json")
     shutil.copy2(HERE / "package-lock.json", PROJECT / "package-lock.json")
@@ -66,6 +69,12 @@ def prepare():
 
 
 def synthesize():
+    narration = WORK / f"narration-{VOICE}"
+    signature = hashlib.sha256((VOICE + "\n" + (PROJECT / "script.txt").read_text()).encode()).hexdigest()
+    marker = narration / "source.sha256"
+    if (narration / "narration.wav").exists() and marker.exists() and marker.read_text().strip() == signature:
+        print("Reusing narration for unchanged script and voice")
+        return
     from huggingface_hub import snapshot_download
     from zerotts.hub import _ALLOW_PATTERNS
     model = WORK / "zerotts-model"
@@ -76,6 +85,7 @@ def synthesize():
     env = os.environ.copy()
     env["ZEROTTS_VOICE"] = VOICE
     run(sys.executable, WORK / "tts.py", env=env)
+    marker.write_text(signature + "\n")
 
 
 def review_sources():
@@ -113,9 +123,13 @@ def review_sources():
 
 
 def align():
+    wav = WORK / f"narration-{VOICE}" / "narration.wav"
+    target = WORK / f"narration-{VOICE}" / "asr-check.json"
+    if target.exists() and target.stat().st_mtime >= wav.stat().st_mtime:
+        print("Reusing word alignment for unchanged narration")
+        return
     import numpy as np
     from faster_whisper import WhisperModel
-    wav = WORK / f"narration-{VOICE}" / "narration.wav"
     pcm = subprocess.check_output(["ffmpeg", "-loglevel", "error", "-i", str(wav),
                                    "-ar", "16000", "-ac", "1", "-f", "s16le", "-"])
     audio = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768
@@ -126,7 +140,6 @@ def align():
     result = [{"start": s.start, "end": s.end, "text": s.text,
                "words": [{"start": w.start, "end": w.end, "word": w.word}
                          for w in s.words or []]} for s in segments]
-    target = WORK / f"narration-{VOICE}" / "asr-check.json"
     target.write_text(json.dumps(result, ensure_ascii=False, indent=2))
     n_script = len((PROJECT / "script.txt").read_text().split())
     n_asr = sum(len(s["words"]) for s in result)
@@ -178,12 +191,12 @@ def render():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["prepare", "review", "tts", "align", "compose", "render", "all"])
+    parser.add_argument("stage", choices=["prepare", "review", "tts", "align", "compose", "render"])
     stage = parser.parse_args().stage
     steps = [("prepare", prepare), ("review", review_sources), ("tts", synthesize), ("align", align),
              ("compose", compose), ("render", render)]
     for name, fn in steps:
-        if stage in ("all", name):
+        if stage == name:
             print("==", name, "==", flush=True)
             fn()
 
